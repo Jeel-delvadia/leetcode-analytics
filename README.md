@@ -1,5 +1,7 @@
 # LeetCode Personal Analytics & Prediction System
 
+[![GitHub Repository](https://img.shields.io/badge/GitHub-leetcode--analytics-blue?logo=github)](https://github.com/Jeel-delvadia/leetcode-analytics)
+
 A single-user system that collects LeetCode activity through a Chrome Extension (Manifest V3), stores data in MySQL, analyzes problem-solving behavior, visualizes performance via a React dashboard, and uses Machine Learning to predict solving probability and contest ratings.
 
 ## Tech Stack
