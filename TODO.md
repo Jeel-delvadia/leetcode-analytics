@@ -52,43 +52,43 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ### Problem table
 
-- [ ] Create Problem table
-- [ ] Store LeetCode problem ID
-- [ ] Store frontend ID
-- [ ] Store title
-- [ ] Store title slug
-- [ ] Store difficulty
-- [ ] Store acceptance rate
-- [ ] Store total submissions
-- [ ] Store total accepted
-- [ ] Store paid/free status
-- [ ] Store problem URL
+- [x] Create Problem table
+- [x] Store LeetCode problem ID
+- [x] Store frontend ID
+- [x] Store title
+- [x] Store title slug
+- [x] Store difficulty
+- [x] Store acceptance rate
+- [x] Store total submissions
+- [x] Store total accepted
+- [x] Store paid/free status
+- [x] Store problem URL
 
 ### Topic table
 
-- [ ] Create Topic table
-- [ ] Store topic ID
-- [ ] Store topic name
-- [ ] Store topic description
+- [x] Create Topic table
+- [x] Store topic ID
+- [x] Store topic name
+- [x] Store topic description
 
 ### ProblemTopic table
 
-- [ ] Create ProblemTopic table
-- [ ] Connect problems with topics
-- [ ] Support multiple topics per problem
+- [x] Create ProblemTopic table
+- [x] Connect problems with topics
+- [x] Support multiple topics per problem
 
 ### ProblemSimilarity table
 
-- [ ] Create ProblemSimilarity table
-- [ ] Store problem → similar problem relationship
-- [ ] Store similarity score
-- [ ] Store source of similarity
+- [x] Create ProblemSimilarity table
+- [x] Store problem → similar problem relationship
+- [x] Store similarity score
+- [x] Store source of similarity
 
 ### TopicPrerequisite table
 
-- [ ] Create TopicPrerequisite table
-- [ ] Store topic → prerequisite topic
-- [ ] Store prerequisite strength
+- [x] Create TopicPrerequisite table
+- [x] Store topic → prerequisite topic
+- [x] Store prerequisite strength
 
 ---
 
@@ -96,27 +96,27 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ### UserProblem table
 
-- [ ] Create UserProblem table
-- [ ] Store problem ID
-- [ ] Store solved/attempted status
-- [ ] Store number of submissions
-- [ ] Store number of accepted submissions
-- [ ] Store first submission time
-- [ ] Store last submission time
-- [ ] Store first accepted time
-- [ ] Store last result
-- [ ] Store attempts before AC
+- [x] Create UserProblem table
+- [x] Store problem ID
+- [x] Store solved/attempted status
+- [x] Store number of submissions
+- [x] Store number of accepted submissions
+- [x] Store first submission time
+- [x] Store last submission time
+- [x] Store first accepted time
+- [x] Store last result
+- [x] Store attempts before AC
 
 ### Submission table
 
-- [ ] Create Submission table
-- [ ] Store submission ID
-- [ ] Store problem ID
-- [ ] Store submission time
-- [ ] Store result
-- [ ] Store language
-- [ ] Store runtime
-- [ ] Store memory
+- [x] Create Submission table
+- [x] Store submission ID
+- [x] Store problem ID
+- [x] Store submission time
+- [x] Store result
+- [x] Store language
+- [x] Store runtime
+- [x] Store memory
 
 ---
 
@@ -124,25 +124,25 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ### Contest table
 
-- [ ] Create Contest table
-- [ ] Store contest ID
-- [ ] Store contest name
-- [ ] Store contest slug
-- [ ] Store contest date
-- [ ] Store contest type
+- [x] Create Contest table
+- [x] Store contest ID
+- [x] Store contest name
+- [x] Store contest slug
+- [x] Store contest date
+- [x] Store contest type
 
 ### ContestParticipation table
 
-- [ ] Create ContestParticipation table
-- [ ] Store contest ID
-- [ ] Store attended status
-- [ ] Store rank
-- [ ] Store score
-- [ ] Store rating before contest
-- [ ] Store rating after contest
-- [ ] Store rating change
-- [ ] Store problems attempted
-- [ ] Store problems solved
+- [x] Create ContestParticipation table
+- [x] Store contest ID
+- [x] Store attended status
+- [x] Store rank
+- [x] Store score
+- [x] Store rating before contest
+- [x] Store rating after contest
+- [x] Store rating change
+- [x] Store problems attempted
+- [x] Store problems solved
 
 ---
 
@@ -150,12 +150,12 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ### SyncHistory table
 
-- [ ] Create SyncHistory table
-- [ ] Store sync type
-- [ ] Store start time
-- [ ] Store completion time
-- [ ] Store records fetched
-- [ ] Store sync status
+- [x] Create SyncHistory table
+- [x] Store sync type
+- [x] Store start time
+- [x] Store completion time
+- [x] Store records fetched
+- [x] Store sync status
 
 ---
 
