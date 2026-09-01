@@ -163,26 +163,26 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ## Relationships
 
-- [ ] Problem → UserProblem
-- [ ] Problem → Submission
-- [ ] Problem → ProblemTopic
-- [ ] Topic → ProblemTopic
-- [ ] Problem → ProblemSimilarity
-- [ ] Topic → TopicPrerequisite
-- [ ] Contest → ContestParticipation
+- [x] Problem → UserProblem
+- [x] Problem → Submission
+- [x] Problem → ProblemTopic
+- [x] Topic → ProblemTopic
+- [x] Problem → ProblemSimilarity
+- [x] Topic → TopicPrerequisite
+- [x] Contest → ContestParticipation
 
 ## Constraints
 
-- [ ] Add primary keys
-- [ ] Add foreign keys
-- [ ] Add unique constraints
-- [ ] Add required NOT NULL constraints
-- [ ] Add difficulty validation
-- [ ] Add result validation
-- [ ] Add useful indexes
-- [ ] Test duplicate submissions
-- [ ] Test duplicate problems
-- [ ] Test foreign key errors
+- [x] Add primary keys
+- [x] Add foreign keys
+- [x] Add unique constraints
+- [x] Add required NOT NULL constraints
+- [x] Add difficulty validation
+- [x] Add result validation
+- [x] Add useful indexes (database/indexes.sql)
+- [x] Test duplicate submissions (tests/database/test_schema.py)
+- [x] Test duplicate problems (database/seed.sql)
+- [x] Test foreign key errors (PRAGMA foreign_keys validation)
 
 ---
 
