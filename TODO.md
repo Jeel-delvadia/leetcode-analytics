@@ -12,22 +12,22 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ## Project Structure
 
-- [ ] Create GitHub repository
-- [ ] Create project folder structure
-- [ ] Create README.md
-- [ ] Create PROJECT_STATUS.md
-- [ ] Create TODO.md
-- [ ] Create CHANGELOG.md
-- [ ] Create docs/
-- [ ] Create database/
-- [ ] Create extension/
-- [ ] Create backend/
-- [ ] Create ml/
-- [ ] Create frontend/
-- [ ] Create tests/
-- [ ] Create .gitignore
-- [ ] Create .env.example
-- [ ] Make first Git commit
+- [x] Create GitHub repository (Git repo initialized)
+- [x] Create project folder structure
+- [x] Create README.md
+- [x] Create PROJECT_STATUS.md
+- [x] Create TODO.md
+- [x] Create CHANGELOG.md
+- [x] Create docs/
+- [x] Create database/
+- [x] Create extension/
+- [x] Create backend/
+- [x] Create ml/
+- [x] Create frontend/
+- [x] Create tests/
+- [x] Create .gitignore
+- [x] Create .env.example
+- [x] Make first Git commit
 
 ## Technologies
 
