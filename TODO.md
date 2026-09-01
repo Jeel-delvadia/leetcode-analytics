@@ -190,46 +190,46 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ## Understand Requests
 
-- [ ] Understand Fetch/XHR requests
-- [ ] Understand HTTP POST
-- [ ] Understand GraphQL
-- [ ] Understand operationName
-- [ ] Understand query
-- [ ] Understand variables
-- [ ] Understand payload
-- [ ] Understand response
-- [ ] Understand authentication/session
-- [ ] Understand cookies
-- [ ] Understand pagination
-- [ ] Understand skip
-- [ ] Understand limit
+- [x] Understand Fetch/XHR requests
+- [x] Understand HTTP POST
+- [x] Understand GraphQL
+- [x] Understand operationName
+- [x] Understand query
+- [x] Understand variables
+- [x] Understand payload
+- [x] Understand response
+- [x] Understand authentication/session
+- [x] Understand cookies
+- [x] Understand pagination
+- [x] Understand skip
+- [x] Understand limit
 
 ## Find Required LeetCode Data
 
-- [ ] Find problem information request
-- [ ] Find user progress request
-- [ ] Find submission history request
-- [ ] Find contest history request
-- [ ] Find problem topics
-- [ ] Find similar questions
-- [ ] Find acceptance rate
-- [ ] Find submission result
-- [ ] Find submission time
-- [ ] Find runtime
-- [ ] Find memory
-- [ ] Find contest rating
-- [ ] Find contest rank
+- [x] Find problem information request (`problemsetQuestionList`)
+- [x] Find user progress request (`userProfileUserQuestionProgressV2`)
+- [x] Find submission history request (`submissionList`)
+- [x] Find contest history request (`userContestRankingInfo`)
+- [x] Find problem topics (`topicTags`)
+- [x] Find similar questions (`similarQuestions`)
+- [x] Find acceptance rate (`acRate`)
+- [x] Find submission result (`statusDisplay`)
+- [x] Find submission time (`timestamp`)
+- [x] Find runtime (`runtime`)
+- [x] Find memory (`memory`)
+- [x] Find contest rating (`rating`)
+- [x] Find contest rank (`ranking`)
 
 ## Document Requests
 
-- [ ] Document request URL
-- [ ] Document request method
-- [ ] Document operationName
-- [ ] Document required variables
-- [ ] Document useful response fields
-- [ ] Document pagination
-- [ ] Document authentication requirements
-- [ ] Map every response field to database column
+- [x] Document request URL (docs/data-sources.md)
+- [x] Document request method (POST / GraphQL)
+- [x] Document operationName
+- [x] Document required variables
+- [x] Document useful response fields
+- [x] Document pagination
+- [x] Document authentication requirements
+- [x] Map every response field to database column (docs/data-sources.md)
 
 ---
 
