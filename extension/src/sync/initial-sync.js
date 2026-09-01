@@ -1,4 +1,4 @@
-// Fast Parallelized Initial Synchronization Module
+// Fast Parallelized Initial Synchronization Module with CSRF Header Support
 
 const LEETCODE_GRAPHQL_URL = 'https://leetcode.com/graphql';
 
@@ -27,54 +27,82 @@ const QUERY = `
   }
 `;
 
+async function getCsrfToken() {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.cookies) {
+      const cookie = await chrome.cookies.get({ url: 'https://leetcode.com', name: 'csrftoken' });
+      if (cookie && cookie.value) {
+        return cookie.value;
+      }
+    }
+  } catch (e) {
+    console.warn('CSRF cookie read notice:', e);
+  }
+  return '';
+}
+
 async function fetchProblemBatch(skip, limit = 100) {
-  const res = await fetch(LEETCODE_GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      operationName: 'problemsetQuestionList',
-      query: QUERY,
-      variables: { categorySlug: '', skip, limit, filters: {} }
-    })
-  });
-  const json = await res.json();
-  return json.data?.problemsetQuestionList || { total: 0, questions: [] };
+  const csrfToken = await getCsrfToken();
+  const headers = { 
+    'Content-Type': 'application/json' 
+  };
+  if (csrfToken) {
+    headers['x-csrftoken'] = csrfToken;
+  }
+
+  try {
+    const res = await fetch(LEETCODE_GRAPHQL_URL, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        operationName: 'problemsetQuestionList',
+        query: QUERY,
+        variables: { categorySlug: '', skip, limit, filters: {} }
+      })
+    });
+    const json = await res.json();
+    return json.data?.problemsetQuestionList || { total: 0, questions: [] };
+  } catch (err) {
+    console.error('Fetch batch error:', err);
+    return { total: 0, questions: [] };
+  }
 }
 
 export async function fetchAllProblemsFast(limit = 100, onProgress = null) {
-  // 1. Fetch first batch to get total count
   const firstBatch = await fetchProblemBatch(0, limit);
   const totalNum = firstBatch.total || 0;
   let allProblems = [];
 
-  firstBatch.questions.forEach(q => {
-    allProblems.push(formatQuestion(q));
-  });
+  if (firstBatch.questions && firstBatch.questions.length > 0) {
+    firstBatch.questions.forEach(q => {
+      allProblems.push(formatQuestion(q));
+    });
+  }
 
   if (onProgress) {
     onProgress(allProblems.length, totalNum);
   }
 
-  // 2. Prepare parallel batch skip offsets
-  const skips = [];
-  for (let s = limit; s < totalNum; s += limit) {
-    skips.push(s);
-  }
+  if (totalNum > 0) {
+    const skips = [];
+    for (let s = limit; s < totalNum; s += limit) {
+      skips.push(s);
+    }
 
-  // 3. Execute batch requests in parallel chunks of 5
-  const CHUNK_SIZE = 5;
-  for (let i = 0; i < skips.length; i += CHUNK_SIZE) {
-    const chunkSkips = skips.slice(i, i + CHUNK_SIZE);
-    const results = await Promise.all(chunkSkips.map(s => fetchProblemBatch(s, limit)));
-    
-    results.forEach(res => {
-      if (res.questions) {
-        res.questions.forEach(q => allProblems.push(formatQuestion(q)));
+    const CHUNK_SIZE = 5;
+    for (let i = 0; i < skips.length; i += CHUNK_SIZE) {
+      const chunkSkips = skips.slice(i, i + CHUNK_SIZE);
+      const results = await Promise.all(chunkSkips.map(s => fetchProblemBatch(s, limit)));
+      
+      results.forEach(res => {
+        if (res.questions) {
+          res.questions.forEach(q => allProblems.push(formatQuestion(q)));
+        }
+      });
+
+      if (onProgress) {
+        onProgress(allProblems.length, totalNum);
       }
-    });
-
-    if (onProgress) {
-      onProgress(allProblems.length, totalNum);
     }
   }
 
@@ -83,7 +111,7 @@ export async function fetchAllProblemsFast(limit = 100, onProgress = null) {
 
 function formatQuestion(q) {
   return {
-    problem_id: parseInt(q.frontendQuestionId, 10),
+    problem_id: parseInt(q.frontendQuestionId, 10) || Math.floor(Math.random() * 10000),
     frontend_id: q.frontendQuestionId,
     title: q.title,
     title_slug: q.titleSlug,
@@ -116,9 +144,13 @@ export async function fetchUserContestRanking(username) {
   `;
 
   try {
+    const csrfToken = await getCsrfToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['x-csrftoken'] = csrfToken;
+
     const res = await fetch(LEETCODE_GRAPHQL_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify({
         operationName: 'userContestRankingInfo',
         query: query,

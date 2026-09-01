@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "declarativeNetRequest",
-    "scripting"
+    "scripting",
+    "cookies"
   ],
   "host_permissions": [
     "https://leetcode.com/*",
