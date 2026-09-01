@@ -8,6 +8,59 @@
 
 ---
 
+## How to Run the Application
+
+### 1. FastAPI Backend Server
+Run from the root repository directory (`D:\lc\leetcode-analytics`):
+
+```cmd
+# Terminal 1 - Backend Server
+cd D:\lc\leetcode-analytics
+venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000 --app-dir backend
+```
+*API Base URL*: `http://localhost:8000`  
+*Swagger Documentation*: `http://localhost:8000/docs`
+
+---
+
+### 2. React Frontend Dashboard
+Run from the `frontend` directory (`D:\lc\leetcode-analytics\frontend`):
+
+```cmd
+# Terminal 2 - Frontend App
+cd D:\lc\leetcode-analytics\frontend
+npm install
+npm run dev
+```
+*Dashboard Web URL*: `http://localhost:5173`
+
+---
+
+### 3. Chrome Extension (Manifest V3)
+1. Open Google Chrome and navigate to: `chrome://extensions/`
+2. Enable **Developer mode** toggle in the top-right corner.
+3. Click **Load unpacked** in the top-left menu.
+4. Select the **`extension`** folder: `D:\lc\leetcode-analytics\extension`
+5. Open `https://leetcode.com`, click the extension icon, and press **Trigger Full Sync**.
+
+---
+
+### 4. Running Test Suites
+Run unit tests from the root directory:
+
+```cmd
+# Schema & Database Verification Test
+venv\Scripts\python.exe tests/database/test_schema.py
+
+# FastAPI Sync API Test
+venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'backend'); from tests.backend.test_sync_api import test_root_endpoint, test_sync_status_endpoint; test_root_endpoint(); test_sync_status_endpoint(); print('API PASSED')"
+
+# Phase 6 Continuous Data Update Test
+venv\Scripts\python.exe tests/backend/test_phase6_verification.py
+```
+
+---
+
 ## Current Status Summary
 - **Current Phase**: Phase 7 (User Problem Analytics)
 - **Phase 1 Progress**: 100% Repository Setup & Tech Stack Configured
@@ -27,31 +80,26 @@
   - `docs/`, `database/`, `extension/`, `backend/`, `ml/`, `frontend/`, `tests/`
   - Core root files: `README.md`, `PROJECT_STATUS.md`, `TODO.md`, `CHANGELOG.md`, `.gitignore`, `.env.example`
 
-### Prompt 2 & 3: Project Roadmap Setup
-- Structured initial project phases and task list in `TODO.md`.
-
-### Prompt 4: Comprehensive 21-Phase Master Plan
-- Updated `TODO.md` with the finalized 21-phase project roadmap (Phases 1 through 21).
+### Prompt 2, 3 & 4: Master 21-Phase Project Plan
+- Created comprehensive `TODO.md` roadmap covering setup, DB design, sync engine, analytics, ML models, dashboard, and testing.
 
 ### Prompt 5: Database Design & Schema Implementation
-- Created ASCII Entity-Relationship (ER) Diagram.
-- Created `database/schema.sql` containing MySQL DDL for all 10 core tables:
-  1. `Problem`
-  2. `Topic`
-  3. `ProblemTopic`
-  4. `Submission`
-  5. `UserProblem`
-  6. `ProblemSimilarity`
-  7. `TopicPrerequisite`
-  8. `Contest`
-  9. `ContestParticipation`
-  10. `SyncHistory`
-- Created detailed documentation in `docs/database.md`.
+- Created ASCII ER Diagram in `docs/database.md`.
+- Created `database/schema.sql` DDL for all 10 core tables (`Problem`, `Topic`, `ProblemTopic`, `Submission`, `UserProblem`, `ProblemSimilarity`, `TopicPrerequisite`, `Contest`, `ContestParticipation`, `SyncHistory`).
+- Implemented SQLAlchemy ORM classes in `backend/app/database/models.py`.
 
-### Prompt 6 & 7: GitHub Remote Setup & Code Push
-- Configured local Git repository with `main` branch.
-- Linked remote `origin` to `https://github.com/Jeel-delvadia/leetcode-analytics.git`.
-- Successfully pushed initial codebase, database schemas, documentation, and project roadmap to GitHub.
+### Prompt 6 & 7: GitHub Remote Setup & Initial Push
+- Configured Git remote `origin` to `https://github.com/Jeel-delvadia/leetcode-analytics.git`.
+- Pushed initial codebase to `main` branch.
+
+### Prompt 8: Data Sources & Network Protocol
+- Documented LeetCode GraphQL endpoints, queries, variables, and response mapping in `docs/data-sources.md`.
+
+### Prompt 9: Data Collection & Incremental Sync Engine
+- Built Chrome extension Manifest V3 background service worker, pagination collectors, and DOM content scripts.
+- Built FastAPI sync API routes (`POST /api/v1/sync/initial`, `POST /api/v1/sync/submission`, `GET /api/v1/sync/status`).
+- Implemented `SyncService` for upserting problems, submissions, user-problem state, and sync logging.
+- Created empirical test suite (`tests/backend/test_phase6_verification.py`).
 
 ---
 
@@ -60,22 +108,15 @@
 | File / Folder | Status | Description |
 |---|---|---|
 | [TODO.md](file:///d:/lc/leetcode-analytics/TODO.md) | Active | Master 21-phase task list |
-| [PROJECT_STATUS.md](file:///d:/lc/leetcode-analytics/PROJECT_STATUS.md) | Updated | Current project status & GitHub log |
+| [PROJECT_STATUS.md](file:///d:/lc/leetcode-analytics/PROJECT_STATUS.md) | Updated | Current project status, execution guide & GitHub log |
 | [database/schema.sql](file:///d:/lc/leetcode-analytics/database/schema.sql) | Completed | MySQL DDL table definitions |
 | [docs/database.md](file:///d:/lc/leetcode-analytics/docs/database.md) | Completed | ER Diagram & Table Specifications |
-| [README.md](file:///d:/lc/leetcode-analytics/README.md) | Completed | Project documentation & GitHub badge |
-| [extension/](file:///d:/lc/leetcode-analytics/extension) | Scaffolding | Chrome Extension Manifest V3 source |
-| [backend/](file:///d:/lc/leetcode-analytics/backend) | Scaffolding | FastAPI application structure |
-| [ml/](file:///d:/lc/leetcode-analytics/ml) | Scaffolding | Features, models, notebooks, data |
-| [frontend/](file:///d:/lc/leetcode-analytics/frontend) | Scaffolding | React dashboard setup |
-
----
-
-## Next Immediate Steps
-1. **Phase 2.1 - Database Auxiliary Scripts**:
-   - `database/seed.sql` (Fake seed data for testing tables)
-   - `database/indexes.sql` (Performance indexing strategy)
-   - `database/views.sql` (Analytical SQL views)
-   - `database/queries.sql` (Test queries for Phase 3 analytics)
-2. **Phase 3 - Database Validation**:
-   - Test SQL constraints, referential integrity, and test queries.
+| [docs/data-sources.md](file:///d:/lc/leetcode-analytics/docs/data-sources.md) | Completed | LeetCode GraphQL endpoints & field mapping |
+| [docs/extension-guide.md](file:///d:/lc/leetcode-analytics/docs/extension-guide.md) | Completed | Chrome extension development & store publishing guide |
+| [backend/app/main.py](file:///d:/lc/leetcode-analytics/backend/app/main.py) | Completed | FastAPI app entrypoint & middleware |
+| [backend/app/database/models.py](file:///d:/lc/leetcode-analytics/backend/app/database/models.py) | Completed | SQLAlchemy ORM models |
+| [backend/app/services/sync_service.py](file:///d:/lc/leetcode-analytics/backend/app/services/sync_service.py) | Completed | Initial & incremental data sync logic |
+| [extension/manifest.json](file:///d:/lc/leetcode-analytics/extension/manifest.json) | Completed | Chrome Extension Manifest V3 configuration |
+| [extension/src/background/service-worker.js](file:///d:/lc/leetcode-analytics/extension/src/background/service-worker.js) | Completed | Extension background worker |
+| [extension/src/content/leetcode-page.js](file:///d:/lc/leetcode-analytics/extension/src/content/leetcode-page.js) | Completed | Page DOM submission listener script |
+| [frontend/package.json](file:///d:/lc/leetcode-analytics/frontend/package.json) | Completed | React + Vite dashboard configuration |
