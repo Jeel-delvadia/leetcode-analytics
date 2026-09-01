@@ -237,41 +237,41 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ## Initial Synchronization
 
-- [ ] Create extension
-- [ ] Create Manifest V3
-- [ ] Create background service worker
-- [ ] Create LeetCode data collector
-- [ ] Fetch problem list
-- [ ] Fetch user progress
-- [ ] Handle skip/limit pagination
-- [ ] Fetch all pages
-- [ ] Fetch submission history
-- [ ] Fetch contest history
-- [ ] Fetch problem topics
-- [ ] Fetch similar problems
+- [x] Create extension
+- [x] Create Manifest V3
+- [x] Create background service worker (extension/src/background/service-worker.js)
+- [x] Create LeetCode data collector (extension/src/sync/initial-sync.js)
+- [x] Fetch problem list
+- [x] Fetch user progress
+- [x] Handle skip/limit pagination
+- [x] Fetch all pages
+- [x] Fetch submission history
+- [x] Fetch contest history
+- [x] Fetch problem topics
+- [x] Fetch similar problems
 
 ## Store Data
 
-- [ ] Send problem data to FastAPI
-- [ ] Insert/update Problem
-- [ ] Insert/update Topic
-- [ ] Insert ProblemTopic
-- [ ] Insert Submission
-- [ ] Insert/update UserProblem
-- [ ] Insert ProblemSimilarity
-- [ ] Insert Contest
-- [ ] Insert ContestParticipation
-- [ ] Record SyncHistory
+- [x] Send problem data to FastAPI (/api/v1/sync/initial)
+- [x] Insert/update Problem
+- [x] Insert/update Topic
+- [x] Insert ProblemTopic
+- [x] Insert Submission
+- [x] Insert/update UserProblem
+- [x] Insert ProblemSimilarity
+- [x] Insert Contest
+- [x] Insert ContestParticipation
+- [x] Record SyncHistory
 
 ## Validate
 
-- [ ] Compare fetched problem count with LeetCode
-- [ ] Compare solved count
-- [ ] Compare submission count
-- [ ] Compare contest count
-- [ ] Check missing problems
-- [ ] Check duplicate records
-- [ ] Check incorrect relationships
+- [x] Compare fetched problem count with LeetCode
+- [x] Compare solved count
+- [x] Compare submission count
+- [x] Compare contest count
+- [x] Check missing problems
+- [x] Check duplicate records
+- [x] Check incorrect relationships
 
 ---
 
@@ -281,25 +281,25 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 When the user submits a new solution:
 
-- [ ] Detect new submission
-- [ ] Obtain submission details
-- [ ] Check whether submission already exists
-- [ ] Insert new Submission
-- [ ] Update UserProblem
-- [ ] Update number of attempts
-- [ ] Update last result
-- [ ] Update solved status
-- [ ] Update first AC if applicable
-- [ ] Update last submission time
+- [x] Detect new submission (extension/src/content/leetcode-page.js)
+- [x] Obtain submission details
+- [x] Check whether submission already exists
+- [x] Insert new Submission
+- [x] Update UserProblem
+- [x] Update number of attempts
+- [x] Update last result
+- [x] Update solved status
+- [x] Update first AC if applicable
+- [x] Update last submission time
 
 ## Periodic Synchronization
 
-- [ ] Store last synchronization time
-- [ ] Fetch only required new data
-- [ ] Detect activity outside extension
-- [ ] Reconcile missed submissions
-- [ ] Prevent duplicate records
-- [ ] Update SyncHistory
+- [x] Store last synchronization time
+- [x] Fetch only required new data
+- [x] Detect activity outside extension
+- [x] Reconcile missed submissions
+- [x] Prevent duplicate records
+- [x] Update SyncHistory
 
 ---
 

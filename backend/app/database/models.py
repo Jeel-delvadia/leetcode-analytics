@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, BigInteger, String, Text, Decimal, Boolean, 
+    Column, Integer, BigInteger, String, Text, Numeric, Boolean, 
     DateTime, Enum, ForeignKey, CheckConstraint, func
 )
 from sqlalchemy.orm import relationship
@@ -34,7 +34,7 @@ class Problem(Base):
     title = Column(String(255), nullable=False)
     title_slug = Column(String(255), unique=True, nullable=False, index=True)
     difficulty = Column(Enum('Easy', 'Medium', 'Hard', name='difficulty_enum'), nullable=False)
-    acceptance_rate = Column(Decimal(6, 3))
+    acceptance_rate = Column(Numeric(6, 3))
     total_submissions = Column(BigInteger)
     total_accepted = Column(BigInteger)
     is_paid = Column(Boolean, default=False)
@@ -103,7 +103,7 @@ class ProblemSimilarity(Base):
 
     problem_id = Column(Integer, ForeignKey("Problem.problem_id", ondelete="CASCADE"), primary_key=True)
     similar_problem_id = Column(Integer, ForeignKey("Problem.problem_id", ondelete="CASCADE"), primary_key=True)
-    similarity_score = Column(Decimal(6, 5))
+    similarity_score = Column(Numeric(6, 5))
     source = Column(String(50))
 
     __table_args__ = (
@@ -116,7 +116,7 @@ class TopicPrerequisite(Base):
 
     topic_id = Column(Integer, ForeignKey("Topic.topic_id", ondelete="CASCADE"), primary_key=True)
     prerequisite_topic_id = Column(Integer, ForeignKey("Topic.topic_id", ondelete="CASCADE"), primary_key=True)
-    prerequisite_strength = Column(Decimal(5, 2))
+    prerequisite_strength = Column(Numeric(5, 2))
 
     __table_args__ = (
         CheckConstraint("topic_id <> prerequisite_topic_id", name="check_different_prerequisite_topics"),
@@ -141,10 +141,10 @@ class ContestParticipation(Base):
     contest_id = Column(Integer, ForeignKey("Contest.contest_id", ondelete="CASCADE"), primary_key=True)
     attended = Column(Boolean, default=True)
     rank = Column(Integer)
-    score = Column(Decimal(8, 2))
-    rating_before = Column(Decimal(8, 2))
-    rating_after = Column(Decimal(8, 2))
-    rating_change = Column(Decimal(8, 2))
+    score = Column(Numeric(8, 2))
+    rating_before = Column(Numeric(8, 2))
+    rating_after = Column(Numeric(8, 2))
+    rating_change = Column(Numeric(8, 2))
     problems_attempted = Column(Integer)
     problems_solved = Column(Integer)
 
@@ -154,7 +154,7 @@ class ContestParticipation(Base):
 class SyncHistory(Base):
     __tablename__ = "SyncHistory"
 
-    sync_id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
+    sync_id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     sync_type = Column(Enum('INITIAL', 'INCREMENTAL', 'RECONCILIATION', name='sync_type_enum'), nullable=False)
     started_at = Column(DateTime, nullable=False, server_default=func.now())
     completed_at = Column(DateTime)
