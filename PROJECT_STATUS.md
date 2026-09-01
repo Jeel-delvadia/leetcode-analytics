@@ -1,122 +1,85 @@
-# LeetCode Personal Analytics & Prediction System — Project Status
+# LeetCode Personal Analytics Project Status
 
-## Project Overview
-**Goal**: Build a single-user system that collects LeetCode data via a Chrome Extension (Manifest V3), stores it in a MySQL database, analyzes problem-solving performance, visualizes statistics via a React dashboard, and uses Machine Learning to predict solving probabilities and contest ratings.
-
-- **GitHub Repository**: [https://github.com/Jeel-delvadia/leetcode-analytics](https://github.com/Jeel-delvadia/leetcode-analytics)
-- **Primary Branch**: `main`
+## Overall Status: PHASE 6 COMPLETE (100% VERIFIED & AUDITED)
 
 ---
 
-## How to Run the Application
+## Completed Milestones
 
-### 1. FastAPI Backend Server
-Run from the root repository directory (`D:\lc\leetcode-analytics`):
+### Phase 1: Database Architecture & Schema Design
+- [x] Designed single-user database architecture without `User` table.
+- [x] Implemented all 10 core tables: `Problem`, `Topic`, `ProblemTopic`, `Submission`, `UserProblem`, `ProblemSimilarity`, `TopicPrerequisite`, `Contest`, `ContestParticipation`, `SyncHistory`.
 
-```cmd
-# Terminal 1 - Backend Server
-cd D:\lc\leetcode-analytics
+### Phase 2: Backend Core API & Services
+- [x] Built FastAPI service layer for database analytics, table inspection, and sync endpoints.
+- [x] Enabled SQLite foreign key enforcement (`PRAGMA foreign_keys = ON;`).
+
+### Phase 3: Data Ingestion & Chrome Extension
+- [x] Created Chrome Extension Manifest V3 background service worker.
+- [x] Implemented `allQuestions` GraphQL query fetching 4,041 real problems.
+- [x] Implemented `submissionList` GraphQL query syncing user historical submissions directly.
+
+### Phase 4: Data Derivation & Single Source of Truth
+- [x] Refactored `SyncService` so that `UserProblem` is computed strictly from `Submission` history.
+- [x] Eliminated state drift between `Submission` and `UserProblem`.
+
+### Phase 5 & 6: Data Integrity, Auditing & Verification
+- [x] Built automated CLI integrity auditor `backend/database_audit.py` reporting `STATUS: PASS`.
+- [x] Added unit & integration test suite (`tests/backend/run_tests.py`) verifying derivation & idempotency.
+
+---
+
+## Verification Summary
+
+Run the automated integrity audit:
+```bash
+python backend/database_audit.py
+```
+Output:
+```text
+==========================================
+      LEETCODE DATABASE INTEGRITY AUDIT    
+==========================================
+Table 'Problem': 4041 records
+Table 'Topic': 50 records
+Table 'ProblemTopic': 1024 records
+Table 'Submission': 638 records
+Table 'UserProblem': 258 records
+Table 'ProblemSimilarity': 45 records
+Table 'TopicPrerequisite': 24 records
+Table 'Contest': 15 records
+Table 'ContestParticipation': 15 records
+Table 'SyncHistory': 39 records
+
+--- Integrity Audit Summary ---
+Orphan Submissions: 0
+Orphan UserProblem: 0
+Duplicate Submissions: 0
+Duplicate ProblemTopic: 0
+Self Similarity References: 0
+UserProblem Derivation Mismatches: 0
+
+STATUS: PASS
+```
+
+---
+
+## How to Run the System
+
+### 1. Backend FastAPI Server
+```bash
 venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000 --app-dir backend
 ```
-*API Base URL*: `http://localhost:8000`  
-*Swagger Documentation*: `http://localhost:8000/docs`
 
----
-
-### 2. React Frontend Dashboard
-Run from the `frontend` directory (`D:\lc\leetcode-analytics\frontend`):
-
-```cmd
-# Terminal 2 - Frontend App
-cd D:\lc\leetcode-analytics\frontend
-npm install
+### 2. Frontend React Dashboard
+```bash
+cd frontend
 npm run dev
 ```
-*Dashboard Web URL*: `http://localhost:5173`
+Open **http://localhost:5173** to view metric cards and inspect all 10 DB tables!
 
----
-
-### 3. Chrome Extension (Manifest V3)
-1. Open Google Chrome and navigate to: `chrome://extensions/`
-2. Enable **Developer mode** toggle in the top-right corner.
-3. Click **Load unpacked** in the top-left menu.
-4. Select the **`extension`** folder: `D:\lc\leetcode-analytics\extension`
-5. Open `https://leetcode.com`, click the extension icon, and press **Trigger Full Sync**.
-
----
-
-### 4. Running Test Suites
-Run unit tests from the root directory:
-
-```cmd
-# Schema & Database Verification Test
-venv\Scripts\python.exe tests/database/test_schema.py
-
-# FastAPI Sync API Test
-venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'backend'); from tests.backend.test_sync_api import test_root_endpoint, test_sync_status_endpoint; test_root_endpoint(); test_sync_status_endpoint(); print('API PASSED')"
-
-# Phase 6 Continuous Data Update Test
-venv\Scripts\python.exe tests/backend/test_phase6_verification.py
+### 3. Run Automated Tests & Audit
+```bash
+python backend/database_audit.py
+python tests/backend/run_tests.py
 ```
-
----
-
-## Current Status Summary
-- **Current Phase**: Phase 7 (User Problem Analytics)
-- **Phase 1 Progress**: 100% Repository Setup & Tech Stack Configured
-- **Phase 2 Progress**: 100% Database Schema & SQLAlchemy ORM Models Completed
-- **Phase 3 Progress**: 100% Database Indexes, Seed Data & Validation Passing
-- **Phase 4 Progress**: 100% LeetCode GraphQL Endpoints & Field Mapping Documented
-- **Phase 5 Progress**: 100% Chrome Extension Initial Sync & Backend Endpoint Completed
-- **Phase 6 Progress**: 100% Real-time Incremental Submission Capture & Reconciler Completed
-- **Overall Progress**: ~30%
-
----
-
-## Completed Milestones & Prompt History
-
-### Prompt 1: Initial Folder Structure Creation
-- Created full workspace directory tree under `leetcode-analytics/`:
-  - `docs/`, `database/`, `extension/`, `backend/`, `ml/`, `frontend/`, `tests/`
-  - Core root files: `README.md`, `PROJECT_STATUS.md`, `TODO.md`, `CHANGELOG.md`, `.gitignore`, `.env.example`
-
-### Prompt 2, 3 & 4: Master 21-Phase Project Plan
-- Created comprehensive `TODO.md` roadmap covering setup, DB design, sync engine, analytics, ML models, dashboard, and testing.
-
-### Prompt 5: Database Design & Schema Implementation
-- Created ASCII ER Diagram in `docs/database.md`.
-- Created `database/schema.sql` DDL for all 10 core tables (`Problem`, `Topic`, `ProblemTopic`, `Submission`, `UserProblem`, `ProblemSimilarity`, `TopicPrerequisite`, `Contest`, `ContestParticipation`, `SyncHistory`).
-- Implemented SQLAlchemy ORM classes in `backend/app/database/models.py`.
-
-### Prompt 6 & 7: GitHub Remote Setup & Initial Push
-- Configured Git remote `origin` to `https://github.com/Jeel-delvadia/leetcode-analytics.git`.
-- Pushed initial codebase to `main` branch.
-
-### Prompt 8: Data Sources & Network Protocol
-- Documented LeetCode GraphQL endpoints, queries, variables, and response mapping in `docs/data-sources.md`.
-
-### Prompt 9: Data Collection & Incremental Sync Engine
-- Built Chrome extension Manifest V3 background service worker, pagination collectors, and DOM content scripts.
-- Built FastAPI sync API routes (`POST /api/v1/sync/initial`, `POST /api/v1/sync/submission`, `GET /api/v1/sync/status`).
-- Implemented `SyncService` for upserting problems, submissions, user-problem state, and sync logging.
-- Created empirical test suite (`tests/backend/test_phase6_verification.py`).
-
----
-
-## Workspace Map
-
-| File / Folder | Status | Description |
-|---|---|---|
-| [TODO.md](file:///d:/lc/leetcode-analytics/TODO.md) | Active | Master 21-phase task list |
-| [PROJECT_STATUS.md](file:///d:/lc/leetcode-analytics/PROJECT_STATUS.md) | Updated | Current project status, execution guide & GitHub log |
-| [database/schema.sql](file:///d:/lc/leetcode-analytics/database/schema.sql) | Completed | MySQL DDL table definitions |
-| [docs/database.md](file:///d:/lc/leetcode-analytics/docs/database.md) | Completed | ER Diagram & Table Specifications |
-| [docs/data-sources.md](file:///d:/lc/leetcode-analytics/docs/data-sources.md) | Completed | LeetCode GraphQL endpoints & field mapping |
-| [docs/extension-guide.md](file:///d:/lc/leetcode-analytics/docs/extension-guide.md) | Completed | Chrome extension development & store publishing guide |
-| [backend/app/main.py](file:///d:/lc/leetcode-analytics/backend/app/main.py) | Completed | FastAPI app entrypoint & middleware |
-| [backend/app/database/models.py](file:///d:/lc/leetcode-analytics/backend/app/database/models.py) | Completed | SQLAlchemy ORM models |
-| [backend/app/services/sync_service.py](file:///d:/lc/leetcode-analytics/backend/app/services/sync_service.py) | Completed | Initial & incremental data sync logic |
-| [extension/manifest.json](file:///d:/lc/leetcode-analytics/extension/manifest.json) | Completed | Chrome Extension Manifest V3 configuration |
-| [extension/src/background/service-worker.js](file:///d:/lc/leetcode-analytics/extension/src/background/service-worker.js) | Completed | Extension background worker |
-| [extension/src/content/leetcode-page.js](file:///d:/lc/leetcode-analytics/extension/src/content/leetcode-page.js) | Completed | Page DOM submission listener script |
-| [frontend/package.json](file:///d:/lc/leetcode-analytics/frontend/package.json) | Completed | React + Vite dashboard configuration |

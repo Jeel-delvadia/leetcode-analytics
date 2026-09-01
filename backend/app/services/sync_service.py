@@ -13,6 +13,66 @@ class SyncService:
     def __init__(self, db: Session):
         self.db = db
 
+    def recalculate_user_problem(self, problem_id: int):
+        """
+        Single Source of Truth: Derives UserProblem summary strictly from Submission records.
+        """
+        subs = self.db.query(Submission).filter(
+            Submission.problem_id == problem_id
+        ).order_by(Submission.submitted_at.asc(), Submission.submission_id.asc()).all()
+
+        if not subs:
+            user_prob = self.db.query(UserProblem).filter(UserProblem.problem_id == problem_id).first()
+            if user_prob:
+                self.db.delete(user_prob)
+            return None
+
+        num_submissions = len(subs)
+        ac_subs = [s for s in subs if s.result == "Accepted"]
+        num_accepted = len(ac_subs)
+        status = "Solved" if num_accepted > 0 else "Attempted"
+
+        first_submitted_at = subs[0].submitted_at
+        last_submitted_at = subs[-1].submitted_at
+        first_accepted_at = ac_subs[0].submitted_at if ac_subs else None
+        last_accepted_at = ac_subs[-1].submitted_at if ac_subs else None
+        last_result = subs[-1].result
+
+        attempts_before_ac = None
+        if num_accepted > 0:
+            count = 0
+            for s in subs:
+                count += 1
+                if s.result == "Accepted":
+                    break
+            attempts_before_ac = count
+
+        user_prob = self.db.query(UserProblem).filter(UserProblem.problem_id == problem_id).first()
+        if not user_prob:
+            user_prob = UserProblem(problem_id=problem_id)
+            self.db.add(user_prob)
+
+        user_prob.status = status
+        user_prob.num_submissions = num_submissions
+        user_prob.num_accepted = num_accepted
+        user_prob.first_submitted_at = first_submitted_at
+        user_prob.last_submitted_at = last_submitted_at
+        user_prob.first_accepted_at = first_accepted_at
+        user_prob.last_accepted_at = last_accepted_at
+        user_prob.last_result = last_result
+        user_prob.attempts_before_ac = attempts_before_ac
+
+        return user_prob
+
+    def recalculate_all_user_problems(self):
+        """
+        Re-derives UserProblem summaries for all problems in Submission table.
+        """
+        pids = [r[0] for r in self.db.query(Submission.problem_id).distinct().all()]
+        for pid in pids:
+            self.recalculate_user_problem(pid)
+        self.db.commit()
+
     def process_initial_sync(self, payload: InitialSyncPayloadSchema) -> SyncHistory:
         sync_record = SyncHistory(
             sync_type=SyncTypeEnum.INITIAL,
@@ -24,6 +84,8 @@ class SyncService:
         self.db.refresh(sync_record)
 
         total_records = 0
+        affected_pids = set()
+
         try:
             # 1. Process Problems & Topics
             for prob_data in payload.problems:
@@ -33,9 +95,14 @@ class SyncService:
             # 2. Process Submissions
             for sub_data in payload.submissions:
                 self._upsert_submission(sub_data)
+                affected_pids.add(sub_data.problem_id)
                 total_records += 1
 
-            # 3. Process Contests
+            # 3. Derive UserProblem state for all affected problems
+            for pid in affected_pids:
+                self.recalculate_user_problem(pid)
+
+            # 4. Process Contests
             for contest_data in payload.contests:
                 self._upsert_contest_and_participation(contest_data)
                 total_records += 1
@@ -72,42 +139,12 @@ class SyncService:
             memory_kb=payload.memory_kb
         )
         self.db.add(new_sub)
+        self.db.flush()
 
-        # 2. Update UserProblem state
-        user_prob = self.db.query(UserProblem).filter(
-            UserProblem.problem_id == payload.problem_id
-        ).first()
+        # 2. Derive UserProblem state strictly from Submission history
+        self.recalculate_user_problem(payload.problem_id)
 
-        is_ac = (payload.result.lower() == "accepted")
-
-        if not user_prob:
-            user_prob = UserProblem(
-                problem_id=payload.problem_id,
-                status="Solved" if is_ac else "Attempted",
-                num_submissions=1,
-                num_accepted=1 if is_ac else 0,
-                first_submitted_at=payload.submitted_at,
-                last_submitted_at=payload.submitted_at,
-                first_accepted_at=payload.submitted_at if is_ac else None,
-                last_accepted_at=payload.submitted_at if is_ac else None,
-                last_result=payload.result,
-                attempts_before_ac=0 if is_ac else None
-            )
-            self.db.add(user_prob)
-        else:
-            user_prob.num_submissions += 1
-            user_prob.last_submitted_at = payload.submitted_at
-            user_prob.last_result = payload.result
-
-            if is_ac:
-                if user_prob.status != "Solved":
-                    user_prob.attempts_before_ac = user_prob.num_submissions - 1
-                    user_prob.first_accepted_at = payload.submitted_at
-                    user_prob.status = "Solved"
-                user_prob.num_accepted += 1
-                user_prob.last_accepted_at = payload.submitted_at
-
-        # Log Sync History
+        # 3. Log Sync History
         sync_log = SyncHistory(
             sync_type=SyncTypeEnum.INCREMENTAL,
             started_at=datetime.utcnow(),

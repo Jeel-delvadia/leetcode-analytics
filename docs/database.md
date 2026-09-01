@@ -1,192 +1,84 @@
-# Database Design Document
+# Database Architecture & Schema Specification
 
-## 1. Entity-Relationship Diagram
+## Overview
 
-```text
-                         ┌──────────────┐
-                         │    Topic     │
-                         │──────────────│
-                         │ topic_id PK  │
-                         │ name         │
-                         └──────┬───────┘
-                                │
-                         ProblemTopic
-                                │
-                                ▼
-┌──────────────┐        ┌──────────────┐
-│   Problem    │        │              │
-│──────────────│        │              │
-│ problem_id PK│◄───────│ UserProblem  │
-│ title        │        │──────────────│
-│ difficulty   │        │ status       │
-│ acceptance   │        │ attempts     │
-│ submissions  │        │ first_AC     │
-│ accepted     │        └──────┬───────┘
-└──────┬───────┘               │
-       │                       │
-       │                       ▼
-       │                ┌──────────────┐
-       │                │ Submission   │
-       │                │──────────────│
-       │                │ submission_id│
-       │                │ result       │
-       │                │ language     │
-       │                │ runtime      │
-       │                │ memory       │
-       │                │ submitted_at │
-       │                └──────────────┘
-       │
-       ├──────────────► ProblemSimilarity ◄──────────────┐
-       │                                                  │
-       ▼                                                  ▼
-┌──────────────┐                                  ┌──────────────┐
-│   Contest    │                                  │    Problem   │
-│──────────────│                                  │              │
-│ contest_id PK│                                  │              │
-│ name         │                                  │              │
-│ date         │                                  │              │
-└──────┬───────┘                                  └──────────────┘
-       │
-       ▼
-┌──────────────────────┐
-│ ContestParticipation │
-│──────────────────────│
-│ contest_id FK        │
-│ rank                 │
-│ score                │
-│ rating_before        │
-│ rating_after         │
-│ rating_change        │
-│ solved               │
-└──────────────────────┘
+The LeetCode Personal Analytics system uses a **single-user architecture** (no `User` table). The canonical source of raw attempt data is the **`Submission`** table. The **`UserProblem`** table is a derived summary table computed directly from `Submission` records.
 
-Topic ──────► TopicPrerequisite ◄────── Topic
+---
 
-SyncHistory
+## ER Diagram & Table Relationships
+
+```
++---------------+        +------------------+        +---------------+
+|    Problem    |------< |   ProblemTopic   | >------|     Topic     |
++---------------+        +------------------+        +---------------+
+    |       |                                                |
+    |       |                                                |
+    |       +------------------------------------+           |
+    v                                            v           v
++---------------+                        +----------------------+
+|  Submission   | (Raw History)          |  TopicPrerequisite   |
++---------------+                        +----------------------+
+    | (Derives)
+    v
++---------------+
+|  UserProblem  | (Summary View)
++---------------+
+
++---------------+        +----------------------+
+|    Contest    |------< | ContestParticipation |
++---------------+        +----------------------+
+
++---------------+
+|  SyncHistory  | (Audit Log)
++---------------+
 ```
 
 ---
 
-## 2. Table Specifications
+## Core 10 Tables Summary
 
-### 2.1. Problem
-Stores global information about every LeetCode problem.
+### 1. `Problem` (Global LeetCode Problems)
+- **Primary Key**: `problem_id` (Integer)
+- **Unique**: `frontend_id`, `title_slug`
+- **Fields**: `title`, `difficulty`, `acceptance_rate`, `total_submissions`, `total_accepted`, `is_paid`, `problem_url`
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `problem_id` | INT | PRIMARY KEY | LeetCode integer ID |
-| `frontend_id` | VARCHAR(20) | UNIQUE, NOT NULL | Display problem number |
-| `title` | VARCHAR(255) | NOT NULL | Problem title |
-| `title_slug` | VARCHAR(255) | UNIQUE, NOT NULL | URL slug |
-| `difficulty` | ENUM | NOT NULL | 'Easy', 'Medium', 'Hard' |
-| `acceptance_rate` | DECIMAL(6,3) | | Global acceptance rate percentage |
-| `total_submissions` | BIGINT | | Total global submissions |
-| `total_accepted` | BIGINT | | Total global accepted submissions |
-| `is_paid` | BOOLEAN | DEFAULT FALSE | Premium status |
-| `problem_url` | VARCHAR(500) | | LeetCode problem URL |
-| `created_at` | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record insertion time |
-| `updated_at` | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record update time |
+### 2. `Topic` (Topic Categories)
+- **Primary Key**: `topic_id` (Integer)
+- **Unique**: `name`
+- **Fields**: `description`
 
-### 2.2. Topic
-Stores LeetCode topics and categories.
+### 3. `ProblemTopic` (Problem-Topic Mapping)
+- **Primary Key**: `(problem_id, topic_id)`
+- **Foreign Keys**: `problem_id` -> `Problem.problem_id`, `topic_id` -> `Topic.topic_id`
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `topic_id` | INT | AUTO_INCREMENT, PRIMARY KEY | Internal topic ID |
-| `name` | VARCHAR(100) | UNIQUE, NOT NULL | Topic name |
-| `description` | TEXT | | Topic description |
+### 4. `Submission` (Raw User Submissions - CANONICAL TRUTH)
+- **Primary Key**: `submission_id` (BigInteger/Integer)
+- **Foreign Key**: `problem_id` -> `Problem.problem_id`
+- **Fields**: `submitted_at`, `result`, `language`, `runtime_ms`, `memory_kb`
 
-### 2.3. ProblemTopic
-Junction table for many-to-many problem and topic relationship.
+### 5. `UserProblem` (Derived Summary State)
+- **Primary Key**: `problem_id` (Integer)
+- **Foreign Key**: `problem_id` -> `Problem.problem_id`
+- **Fields**: `status`, `num_submissions`, `num_accepted`, `first_submitted_at`, `last_submitted_at`, `first_accepted_at`, `last_accepted_at`, `last_result`, `attempts_before_ac`
+- **Derivation Rule**: Computed strictly from `Submission` rows grouped by `problem_id`.
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `problem_id` | INT | FK -> Problem(problem_id) | Foreign key to Problem |
-| `topic_id` | INT | FK -> Topic(topic_id) | Foreign key to Topic |
+### 6. `ProblemSimilarity` (Problem Relationships)
+- **Primary Key**: `(problem_id, similar_problem_id)`
+- **Check Constraint**: `problem_id <> similar_problem_id`
 
-### 2.4. Submission
-Stores individual submission records.
+### 7. `TopicPrerequisite` (Learning Path Dependencies)
+- **Primary Key**: `(topic_id, prerequisite_topic_id)`
+- **Check Constraint**: `topic_id <> prerequisite_topic_id`
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `submission_id` | BIGINT | PRIMARY KEY | Submission ID |
-| `problem_id` | INT | FK -> Problem(problem_id) | Foreign key to Problem |
-| `submitted_at` | DATETIME | NOT NULL | Timestamp of submission |
-| `result` | VARCHAR(50) | NOT NULL | Result status (Accepted, Wrong Answer, TLE, etc.) |
-| `language` | VARCHAR(50) | | Programming language used |
-| `runtime_ms` | INT | | Execution runtime in ms |
-| `memory_kb` | INT | | Memory usage in KB |
+### 8. `Contest` (Global Contests)
+- **Primary Key**: `contest_id` (Integer)
+- **Unique**: `contest_slug`
 
-### 2.5. UserProblem
-Single-user aggregate relationship state per problem.
+### 9. `ContestParticipation` (User Contest History)
+- **Primary Key**: `contest_id` (Integer)
+- **Foreign Key**: `contest_id` -> `Contest.contest_id`
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `problem_id` | INT | PRIMARY KEY, FK -> Problem | Foreign key to Problem |
-| `status` | ENUM | NOT NULL | 'Attempted', 'Solved' |
-| `num_submissions` | INT | DEFAULT 0 | Total user attempts |
-| `num_accepted` | INT | DEFAULT 0 | Total AC submissions |
-| `first_submitted_at` | DATETIME | | First attempt date |
-| `last_submitted_at` | DATETIME | | Latest attempt date |
-| `first_accepted_at` | DATETIME | | First AC date |
-| `last_accepted_at` | DATETIME | | Latest AC date |
-| `last_result` | VARCHAR(50) | | Latest submission result |
-| `attempts_before_ac` | INT | | Failed attempts prior to first AC |
-
-### 2.6. ProblemSimilarity
-Stores similarity relationships between problems for recommendation models.
-
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `problem_id` | INT | FK -> Problem(problem_id) | Base problem ID |
-| `similar_problem_id` | INT | FK -> Problem(problem_id) | Related problem ID |
-| `similarity_score` | DECIMAL(6,5) | | Calculated or source similarity score |
-| `source` | VARCHAR(50) | | Source of similarity data |
-
-### 2.7. TopicPrerequisite
-Represents prerequisite graphs between topics for learning flow prediction.
-
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `topic_id` | INT | FK -> Topic(topic_id) | Target topic |
-| `prerequisite_topic_id` | INT | FK -> Topic(topic_id) | Prerequisite topic |
-| `prerequisite_strength` | DECIMAL(5,2) | | Strength weight of prerequisite |
-
-### 2.8. Contest
-Stores global contest information.
-
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `contest_id` | INT | PRIMARY KEY | Contest ID |
-| `contest_name` | VARCHAR(255) | NOT NULL | Name of contest |
-| `contest_slug` | VARCHAR(255) | UNIQUE | URL slug |
-| `contest_date` | DATETIME | | Contest start time |
-| `contest_type` | VARCHAR(50) | | Weekly/Biweekly type |
-
-### 2.9. ContestParticipation
-User performance per contest.
-
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `contest_id` | INT | PRIMARY KEY, FK -> Contest | Foreign key to Contest |
-| `attended` | BOOLEAN | DEFAULT TRUE | Attendance indicator |
-| `rank` | INT | | Final rank achieved |
-| `score` | DECIMAL(8,2) | | Total contest score |
-| `rating_before` | DECIMAL(8,2) | | Rating before contest |
-| `rating_after` | DECIMAL(8,2) | | Rating after contest |
-| `rating_change` | DECIMAL(8,2) | | Delta rating change |
-| `problems_attempted` | INT | | Count of attempted problems |
-| `problems_solved` | INT | | Count of solved problems |
-
-### 2.10. SyncHistory
-Tracks Chrome extension sync executions and health.
-
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `sync_id` | BIGINT | AUTO_INCREMENT, PRIMARY KEY | Sync operation ID |
-| `sync_type` | ENUM | NOT NULL | 'INITIAL', 'INCREMENTAL', 'RECONCILIATION' |
-| `started_at` | DATETIME | NOT NULL | Sync start timestamp |
-| `completed_at` | DATETIME | | Sync end timestamp |
-| `records_fetched` | INT | DEFAULT 0 | Number of records pulled |
-| `status` | ENUM | NOT NULL | 'RUNNING', 'SUCCESS', 'FAILED' |
-| `error_message` | TEXT | | Failure traceback or message |
+### 10. `SyncHistory` (System Audit Log)
+- **Primary Key**: `sync_id` (Integer)
+- **Fields**: `sync_type` (INITIAL, INCREMENTAL, RECONCILIATION), `started_at`, `completed_at`, `records_fetched`, `status`, `error_message`
