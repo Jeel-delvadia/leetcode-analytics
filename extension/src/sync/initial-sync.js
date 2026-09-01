@@ -1,85 +1,100 @@
-// Initial Synchronization Module
+// Fast Parallelized Initial Synchronization Module
 
 const LEETCODE_GRAPHQL_URL = 'https://leetcode.com/graphql';
 
-export async function fetchAllProblems(limit = 100) {
-  let skip = 0;
-  let hasMore = true;
-  const allProblems = [];
-
-  const query = `
-    query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
-      problemsetQuestionList: questionList(
-        categorySlug: $categorySlug
-        limit: $limit
-        skip: $skip
-        filters: $filters
-      ) {
-        total: totalNum
-        questions: questions {
-          frontendQuestionId: questionFrontendId
-          title
-          titleSlug
-          difficulty
-          acRate
-          isPaidOnly
-          topicTags {
-            name
-            slug
-          }
+const QUERY = `
+  query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+    problemsetQuestionList: questionList(
+      categorySlug: $categorySlug
+      limit: $limit
+      skip: $skip
+      filters: $filters
+    ) {
+      total: totalNum
+      questions: questions {
+        frontendQuestionId: questionFrontendId
+        title
+        titleSlug
+        difficulty
+        acRate
+        isPaidOnly
+        topicTags {
+          name
+          slug
         }
       }
     }
-  `;
+  }
+`;
 
-  while (hasMore) {
-    const res = await fetch(LEETCODE_GRAPHQL_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        operationName: 'problemsetQuestionList',
-        query: query,
-        variables: {
-          categorySlug: '',
-          skip: skip,
-          limit: limit,
-          filters: {}
-        }
-      })
+async function fetchProblemBatch(skip, limit = 100) {
+  const res = await fetch(LEETCODE_GRAPHQL_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      operationName: 'problemsetQuestionList',
+      query: QUERY,
+      variables: { categorySlug: '', skip, limit, filters: {} }
+    })
+  });
+  const json = await res.json();
+  return json.data?.problemsetQuestionList || { total: 0, questions: [] };
+}
+
+export async function fetchAllProblemsFast(limit = 100, onProgress = null) {
+  // 1. Fetch first batch to get total count
+  const firstBatch = await fetchProblemBatch(0, limit);
+  const totalNum = firstBatch.total || 0;
+  let allProblems = [];
+
+  firstBatch.questions.forEach(q => {
+    allProblems.push(formatQuestion(q));
+  });
+
+  if (onProgress) {
+    onProgress(allProblems.length, totalNum);
+  }
+
+  // 2. Prepare parallel batch skip offsets
+  const skips = [];
+  for (let s = limit; s < totalNum; s += limit) {
+    skips.push(s);
+  }
+
+  // 3. Execute batch requests in parallel chunks of 5
+  const CHUNK_SIZE = 5;
+  for (let i = 0; i < skips.length; i += CHUNK_SIZE) {
+    const chunkSkips = skips.slice(i, i + CHUNK_SIZE);
+    const results = await Promise.all(chunkSkips.map(s => fetchProblemBatch(s, limit)));
+    
+    results.forEach(res => {
+      if (res.questions) {
+        res.questions.forEach(q => allProblems.push(formatQuestion(q)));
+      }
     });
 
-    const json = await res.json();
-    const data = json.data?.problemsetQuestionList;
-    if (!data || !data.questions || data.questions.length === 0) {
-      hasMore = false;
-      break;
-    }
-
-    data.questions.forEach(q => {
-      allProblems.push({
-        problem_id: parseInt(q.frontendQuestionId, 10),
-        frontend_id: q.frontendQuestionId,
-        title: q.title,
-        title_slug: q.titleSlug,
-        difficulty: q.difficulty,
-        acceptance_rate: parseFloat(q.acRate.toFixed(3)),
-        total_submissions: null,
-        total_accepted: null,
-        is_paid: q.isPaidOnly,
-        problem_url: `https://leetcode.com/problems/${q.titleSlug}/`,
-        topics: q.topicTags ? q.topicTags.map(t => t.name) : []
-      });
-    });
-
-    skip += limit;
-    if (skip >= data.total) {
-      hasMore = false;
+    if (onProgress) {
+      onProgress(allProblems.length, totalNum);
     }
   }
 
   return allProblems;
+}
+
+function formatQuestion(q) {
+  return {
+    problem_id: parseInt(q.frontendQuestionId, 10),
+    frontend_id: q.frontendQuestionId,
+    title: q.title,
+    title_slug: q.titleSlug,
+    difficulty: q.difficulty,
+    acceptance_rate: parseFloat((q.acRate || 0).toFixed(3)),
+    total_submissions: null,
+    total_accepted: null,
+    is_paid: q.isPaidOnly,
+    problem_url: `https://leetcode.com/problems/${q.titleSlug}/`,
+    topics: q.topicTags ? q.topicTags.map(t => t.name) : []
+  };
 }
 
 export async function fetchUserContestRanking(username) {

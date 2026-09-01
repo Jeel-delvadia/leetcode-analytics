@@ -1,11 +1,11 @@
 // Background Service Worker for Manifest V3
 
-import { fetchAllProblems, fetchUserContestRanking } from '../sync/initial-sync.js';
+import { fetchAllProblemsFast, fetchUserContestRanking } from '../sync/initial-sync.js';
 import { sendInitialSyncData, sendIncrementalSubmission } from '../api/backend.js';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('LeetCode Analytics Collector Service Worker Installed.');
-  chrome.storage.local.set({ syncStatus: 'IDLE', lastSyncTime: null });
+  chrome.storage.local.set({ syncStatus: 'IDLE', lastSyncTime: null, progressText: '' });
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -25,9 +25,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function handleFullSync() {
-  chrome.storage.local.set({ syncStatus: 'RUNNING' });
+  chrome.storage.local.set({ syncStatus: 'RUNNING', progressText: 'Starting fast parallel sync...' });
   try {
-    const problems = await fetchAllProblems(100);
+    const problems = await fetchAllProblemsFast(100, (fetched, total) => {
+      const progress = `Fetching problems: ${fetched} / ${total}`;
+      chrome.storage.local.set({ progressText: progress });
+    });
+
+    chrome.storage.local.set({ progressText: 'Sending payload to backend...' });
+
     const contests = await fetchUserContestRanking('user');
 
     const payload = {
@@ -39,10 +45,15 @@ async function handleFullSync() {
 
     const res = await sendInitialSyncData(payload);
     const now = new Date().toISOString();
-    chrome.storage.local.set({ syncStatus: 'SUCCESS', lastSyncTime: now, recordsFetched: res.records_fetched });
+    chrome.storage.local.set({ 
+      syncStatus: 'SUCCESS', 
+      lastSyncTime: now, 
+      recordsFetched: res.records_fetched,
+      progressText: `Complete! ${res.records_fetched} records synced.` 
+    });
     return res;
   } catch (err) {
-    chrome.storage.local.set({ syncStatus: 'FAILED', error: err.message });
+    chrome.storage.local.set({ syncStatus: 'FAILED', error: err.message, progressText: `Error: ${err.message}` });
     throw err;
   }
 }
