@@ -307,17 +307,17 @@ When the user submits a new solution:
 
 For every problem the user attempted, calculate:
 
-- [ ] Number of attempts
-- [ ] Number of AC
-- [ ] Number of WA
-- [ ] Number of TLE
-- [ ] Number of MLE
-- [ ] First-attempt AC
-- [ ] Attempts before AC
-- [ ] Time between first attempt and AC
-- [ ] Last result
-- [ ] Solved status
-- [ ] Number of failed attempts before solving
+- [x] Number of attempts
+- [x] Number of AC
+- [x] Number of WA
+- [x] Number of TLE
+- [x] Number of MLE
+- [x] First-attempt AC
+- [x] Attempts before AC
+- [x] Time between first attempt and AC
+- [x] Last result
+- [x] Solved status
+- [x] Number of failed attempts before solving
 
 Example output:
 
@@ -339,36 +339,36 @@ Problem: Binary Search
 
 For every topic:
 
-- [ ] Count total problems
-- [ ] Count solved problems
-- [ ] Count attempted problems
-- [ ] Count unsolved problems
-- [ ] Calculate solving percentage
-- [ ] Calculate average attempts
-- [ ] Calculate AC rate
-- [ ] Calculate WA rate
-- [ ] Calculate TLE rate
-- [ ] Calculate Easy solved
-- [ ] Calculate Medium solved
-- [ ] Calculate Hard solved
-- [ ] Find last practice date
-- [ ] Calculate days since last practice
-- [ ] Calculate topic mastery score
+- [x] Count total problems
+- [x] Count solved problems
+- [x] Count attempted problems
+- [x] Count unsolved problems
+- [x] Calculate solving percentage
+- [x] Calculate average attempts
+- [x] Calculate AC rate
+- [x] Calculate WA rate
+- [x] Calculate TLE rate
+- [x] Calculate Easy solved
+- [x] Calculate Medium solved
+- [x] Calculate Hard solved
+- [x] Find last practice date
+- [x] Calculate days since last practice
+- [x] Calculate topic mastery score
 
 ---
 
 # PHASE 9 — DIFFICULTY ANALYSIS
 
-- [ ] Count Easy solved
-- [ ] Count Medium solved
-- [ ] Count Hard solved
-- [ ] Calculate Easy success rate
-- [ ] Calculate Medium success rate
-- [ ] Calculate Hard success rate
-- [ ] Calculate average attempts by difficulty
-- [ ] Calculate first-attempt AC rate by difficulty
-- [ ] Track difficulty progression over time
-- [ ] Identify difficulty level where performance decreases
+- [x] Count Easy solved
+- [x] Count Medium solved
+- [x] Count Hard solved
+- [x] Calculate Easy success rate
+- [x] Calculate Medium success rate
+- [x] Calculate Hard success rate
+- [x] Calculate average attempts by difficulty
+- [x] Calculate first-attempt AC rate by difficulty
+- [x] Track difficulty progression over time
+- [x] Identify difficulty level where performance decreases
 
 ---
 
