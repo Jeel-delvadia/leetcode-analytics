@@ -31,7 +31,7 @@ def get_difficulty_analytics(db: Session = Depends(get_db)):
     service = AnalyticsService(db)
     return service.get_difficulty_analytics()
 
-@router.get("/tables")
+@router.get("/db/tables")
 def get_all_tables_summary(db: Session = Depends(get_db)):
     """
     Returns all 10 DB design tables and their current row counts.
@@ -39,7 +39,7 @@ def get_all_tables_summary(db: Session = Depends(get_db)):
     service = AnalyticsService(db)
     return service.get_all_tables_summary()
 
-@router.get("/tables/{table_name}")
+@router.get("/db/tables/{table_name}")
 def get_table_records(table_name: str, limit: int = 50, db: Session = Depends(get_db)):
     """
     Returns actual rows from any DB table (Problem, UserProblem, Submission, SyncHistory, etc.).

@@ -190,7 +190,14 @@ class AnalyticsService:
         if not model:
             return None
 
-        rows = self.db.query(model).limit(limit).all()
+        # Order by primary key desc for Submission, SyncHistory, etc.
+        query = self.db.query(model)
+        if table_name == "Submission":
+            query = query.order_by(Submission.submission_id.desc())
+        elif table_name == "SyncHistory":
+            query = query.order_by(SyncHistory.sync_id.desc())
+
+        rows = query.limit(limit).all()
         result = []
         for r in rows:
             dict_row = {}

@@ -22,7 +22,7 @@ export default function App() {
         const [overallRes, diffRes, tablesRes] = await Promise.all([
           fetch('/api/v1/analytics/overall').then(r => r.ok ? r.json() : null),
           fetch('/api/v1/analytics/difficulty').then(r => r.ok ? r.json() : null),
-          fetch('/api/v1/analytics/tables').then(r => r.ok ? r.json() : [])
+          fetch('/api/v1/analytics/db/tables').then(r => r.ok ? r.json() : [])
         ]);
         setOverall(overallRes);
         setDifficulty(diffRes);
@@ -41,7 +41,7 @@ export default function App() {
     async function fetchTableRecords() {
       setTableLoading(true);
       try {
-        const res = await fetch(`/api/v1/analytics/tables/${selectedTable}`);
+        const res = await fetch(`/api/v1/analytics/db/tables/${selectedTable}`);
         if (res.ok) {
           const data = await res.json();
           setTableData(data);
