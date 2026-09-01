@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.services.analytics_service import AnalyticsService
@@ -40,12 +41,12 @@ def get_all_tables_summary(db: Session = Depends(get_db)):
     return service.get_all_tables_summary()
 
 @router.get("/db/tables/{table_name}")
-def get_table_records(table_name: str, limit: int = 50, db: Session = Depends(get_db)):
+def get_table_records(table_name: str, skip: int = 0, limit: Optional[int] = None, db: Session = Depends(get_db)):
     """
-    Returns actual rows from any DB table (Problem, UserProblem, Submission, SyncHistory, etc.).
+    Returns rows from DB table till end (or with optional skip/limit pagination).
     """
     service = AnalyticsService(db)
-    res = service.get_table_records(table_name, limit)
+    res = service.get_table_records(table_name, skip=skip, limit=limit)
     if res is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

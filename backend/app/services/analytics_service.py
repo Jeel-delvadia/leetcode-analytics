@@ -172,7 +172,7 @@ class AnalyticsService:
         ]
         return [{"table_name": t[0], "row_count": t[1]} for t in tables]
 
-    def get_table_records(self, table_name: str, limit: int = 50):
+    def get_table_records(self, table_name: str, skip: int = 0, limit: int = None):
         model_map = {
             "Problem": Problem,
             "Topic": Topic,
@@ -190,14 +190,20 @@ class AnalyticsService:
         if not model:
             return None
 
-        # Order by primary key desc for Submission, SyncHistory, etc.
         query = self.db.query(model)
         if table_name == "Submission":
             query = query.order_by(Submission.submission_id.desc())
         elif table_name == "SyncHistory":
             query = query.order_by(SyncHistory.sync_id.desc())
+        elif table_name == "Problem":
+            query = query.order_by(Problem.problem_id.asc())
 
-        rows = query.limit(limit).all()
+        if skip:
+            query = query.offset(skip)
+        if limit and limit > 0:
+            query = query.limit(limit)
+
+        rows = query.all()
         result = []
         for r in rows:
             dict_row = {}

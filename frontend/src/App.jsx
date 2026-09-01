@@ -15,6 +15,8 @@ export default function App() {
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 100;
 
   useEffect(() => {
     async function fetchData() {
@@ -41,6 +43,7 @@ export default function App() {
     async function fetchTableRecords() {
       setTableLoading(true);
       try {
+        // Fetch full table payload from backend
         const res = await fetch(`/api/v1/analytics/db/tables/${selectedTable}`);
         if (res.ok) {
           const data = await res.json();
@@ -53,6 +56,7 @@ export default function App() {
         setTableData([]);
       } finally {
         setTableLoading(false);
+        setPage(1);
       }
     }
     fetchTableRecords();
@@ -83,6 +87,10 @@ export default function App() {
     if (!tableData || tableData.length === 0) return [];
     return Object.keys(tableData[0]);
   };
+
+  const totalRecords = tableData.length;
+  const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+  const paginatedData = tableData.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px', color: '#f8fafc', fontFamily: 'sans-serif' }}>
@@ -129,9 +137,14 @@ export default function App() {
 
           {/* Database Table Inspector Section */}
           <div style={{ background: '#1e293b', padding: '24px', borderRadius: '12px', border: '1px solid #334155', marginBottom: '32px' }}>
-            <h2 style={{ color: '#38bdf8', marginTop: 0, fontSize: '18px', marginBottom: '16px' }}>
-              🗄️ Database Design Table Inspector (10 Core Tables)
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ color: '#38bdf8', margin: 0, fontSize: '18px' }}>
+                🗄️ Database Design Table Inspector (10 Core Tables)
+              </h2>
+              <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                Fetched <b>{totalRecords.toLocaleString()}</b> total records for table <b>{selectedTable}</b>
+              </div>
+            </div>
 
             {/* Table Selector Buttons */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
@@ -151,15 +164,15 @@ export default function App() {
                     fontSize: '13px'
                   }}
                 >
-                  {t.table_name} ({t.row_count})
+                  {t.table_name} ({t.row_count.toLocaleString()})
                 </button>
               ))}
             </div>
 
             {/* Table Data View */}
-            <div style={{ overflowX: 'auto', maxHeight: '400px', borderRadius: '8px', border: '1px solid #334155' }}>
+            <div style={{ overflowX: 'auto', maxHeight: '450px', borderRadius: '8px', border: '1px solid #334155' }}>
               {tableLoading ? (
-                <p style={{ padding: '20px', color: '#94a3b8', margin: 0 }}>Loading {selectedTable} table records...</p>
+                <p style={{ padding: '20px', color: '#94a3b8', margin: 0 }}>Loading all {selectedTable} table records...</p>
               ) : tableData.length === 0 ? (
                 <p style={{ padding: '20px', color: '#94a3b8', margin: 0 }}>No records in table <b>{selectedTable}</b> yet.</p>
               ) : (
@@ -172,7 +185,7 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {tableData.map((row, idx) => (
+                    {paginatedData.map((row, idx) => (
                       <tr key={idx} style={{ borderBottom: '1px solid #334155', background: idx % 2 === 0 ? '#1e293b' : '#0f172a' }}>
                         {getTableColumns().map(col => (
                           <td key={col} style={{ padding: '8px 14px', whiteSpace: 'nowrap', color: '#cbd5e1' }}>
@@ -185,6 +198,32 @@ export default function App() {
                 </table>
               )}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '13px', color: '#94a3b8' }}>
+                <div>
+                  Showing {((page - 1) * pageSize + 1).toLocaleString()} – {Math.min(page * pageSize, totalRecords).toLocaleString()} of {totalRecords.toLocaleString()} records
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    style={{ padding: '6px 12px', background: '#0f172a', border: '1px solid #334155', color: '#f8fafc', borderRadius: '6px', cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                  >
+                    ◀ Previous
+                  </button>
+                  <span style={{ padding: '6px 12px', color: '#38bdf8', fontWeight: 'bold' }}>Page {page} of {totalPages}</span>
+                  <button
+                    disabled={page === totalPages}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    style={{ padding: '6px 12px', background: '#0f172a', border: '1px solid #334155', color: '#f8fafc', borderRadius: '6px', cursor: page === totalPages ? 'not-allowed' : 'pointer' }}
+                  >
+                    Next ▶
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Highcharts Chart */}
