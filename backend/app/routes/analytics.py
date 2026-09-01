@@ -7,17 +7,11 @@ router = APIRouter(prefix="/analytics", tags=["Data Analytics"])
 
 @router.get("/overall")
 def get_overall_analytics(db: Session = Depends(get_db)):
-    """
-    Returns overall user solving progress, total solved, and AC rate.
-    """
     service = AnalyticsService(db)
     return service.get_overall_progress()
 
 @router.get("/problems/{problem_id}")
 def get_problem_analytics(problem_id: int, db: Session = Depends(get_db)):
-    """
-    Returns granular problem submission performance (attempts, AC, WA, TLE, time to AC).
-    """
     service = AnalyticsService(db)
     res = service.get_problem_analytics(problem_id)
     if not res:
@@ -29,16 +23,32 @@ def get_problem_analytics(problem_id: int, db: Session = Depends(get_db)):
 
 @router.get("/topics")
 def get_topic_analytics(db: Session = Depends(get_db)):
-    """
-    Returns topic mastery scores, AC/WA/TLE rates, and solving percentages per topic.
-    """
     service = AnalyticsService(db)
     return service.get_topic_analytics()
 
 @router.get("/difficulty")
 def get_difficulty_analytics(db: Session = Depends(get_db)):
-    """
-    Returns difficulty level breakdown (Easy, Medium, Hard success rates & average attempts).
-    """
     service = AnalyticsService(db)
     return service.get_difficulty_analytics()
+
+@router.get("/tables")
+def get_all_tables_summary(db: Session = Depends(get_db)):
+    """
+    Returns all 10 DB design tables and their current row counts.
+    """
+    service = AnalyticsService(db)
+    return service.get_all_tables_summary()
+
+@router.get("/tables/{table_name}")
+def get_table_records(table_name: str, limit: int = 50, db: Session = Depends(get_db)):
+    """
+    Returns actual rows from any DB table (Problem, UserProblem, Submission, SyncHistory, etc.).
+    """
+    service = AnalyticsService(db)
+    res = service.get_table_records(table_name, limit)
+    if res is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Table '{table_name}' does not exist in DB design"
+        )
+    return res

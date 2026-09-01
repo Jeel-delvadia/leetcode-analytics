@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from app.database.models import (
-    Problem, Topic, ProblemTopic, Submission, UserProblem, Contest, ContestParticipation
+    Problem, Topic, ProblemTopic, Submission, UserProblem, 
+    ProblemSimilarity, TopicPrerequisite, Contest, ContestParticipation, SyncHistory
 )
 from datetime import datetime, timezone
 
@@ -155,3 +156,48 @@ class AnalyticsService:
             }
 
         return stats
+
+    def get_all_tables_summary(self):
+        tables = [
+            ("Problem", self.db.query(Problem).count()),
+            ("Topic", self.db.query(Topic).count()),
+            ("ProblemTopic", self.db.query(ProblemTopic).count()),
+            ("Submission", self.db.query(Submission).count()),
+            ("UserProblem", self.db.query(UserProblem).count()),
+            ("ProblemSimilarity", self.db.query(ProblemSimilarity).count()),
+            ("TopicPrerequisite", self.db.query(TopicPrerequisite).count()),
+            ("Contest", self.db.query(Contest).count()),
+            ("ContestParticipation", self.db.query(ContestParticipation).count()),
+            ("SyncHistory", self.db.query(SyncHistory).count())
+        ]
+        return [{"table_name": t[0], "row_count": t[1]} for t in tables]
+
+    def get_table_records(self, table_name: str, limit: int = 50):
+        model_map = {
+            "Problem": Problem,
+            "Topic": Topic,
+            "ProblemTopic": ProblemTopic,
+            "Submission": Submission,
+            "UserProblem": UserProblem,
+            "ProblemSimilarity": ProblemSimilarity,
+            "TopicPrerequisite": TopicPrerequisite,
+            "Contest": Contest,
+            "ContestParticipation": ContestParticipation,
+            "SyncHistory": SyncHistory
+        }
+
+        model = model_map.get(table_name)
+        if not model:
+            return None
+
+        rows = self.db.query(model).limit(limit).all()
+        result = []
+        for r in rows:
+            dict_row = {}
+            for col in r.__table__.columns:
+                val = getattr(r, col.name)
+                if isinstance(val, datetime):
+                    val = val.isoformat()
+                dict_row[col.name] = val
+            result.append(dict_row)
+        return result
