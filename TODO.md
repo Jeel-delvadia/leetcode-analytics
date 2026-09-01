@@ -31,18 +31,18 @@ visualizes progress, and uses ML to predict solving ability and future progress.
 
 ## Technologies
 
-- [ ] Setup MySQL
-- [ ] Setup Python virtual environment
-- [ ] Setup FastAPI
-- [ ] Setup SQLAlchemy
-- [ ] Setup MySQL Python driver
-- [ ] Setup Pandas
-- [ ] Setup NumPy
-- [ ] Setup Scikit-learn
-- [ ] Setup Matplotlib
-- [ ] Setup Chrome Extension Manifest V3
-- [ ] Setup React
-- [ ] Setup chart library
+- [x] Setup MySQL (DDL Schema & Connection configured)
+- [x] Setup Python virtual environment (venv initialized)
+- [x] Setup FastAPI (FastAPI app configured in main.py)
+- [x] Setup SQLAlchemy (Connection engine & SessionLocal configured)
+- [x] Setup MySQL Python driver (PyMySQL installed & configured)
+- [x] Setup Pandas (Dependencies installed)
+- [x] Setup NumPy (Dependencies installed)
+- [x] Setup Scikit-learn (Dependencies installed)
+- [x] Setup Matplotlib (Dependencies installed)
+- [x] Setup Chrome Extension Manifest V3 (manifest.json & popup.html configured)
+- [x] Setup React (frontend package.json & Vite setup)
+- [x] Setup chart library (Recharts dependency configured)
 
 ---
 

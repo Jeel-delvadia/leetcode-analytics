@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeetCode Analytics</title>
+  <style>
+    body {
+      width: 280px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    h2 {
+      font-size: 16px;
+      margin-top: 0;
+      color: #38bdf8;
+    }
+    .status-card {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .status-text {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0369a1;
+    }
+  </style>
+</head>
+<body>
+  <h2>LeetCode Analytics</h2>
+  <div class="status-card">
+    <div class="status-text">Last Sync: <span>Never</span></div>
+    <div class="status-text">Sync Status: <span id="status">Idle</span></div>
+  </div>
+  <button id="syncBtn">Trigger Full Sync</button>
+  <script src="popup.js"></script>
+</body>
+</html>

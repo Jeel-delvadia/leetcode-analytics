@@ -1,0 +1,22 @@
+# Web Framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+
+# Database & ORM
+sqlalchemy>=2.0.0
+pymysql>=1.1.0
+cryptography>=41.0.0
+
+# Data Validation & Settings
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+
+# Data Analytics & Machine Learning
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+
+# HTTP Requests
+requests>=2.31.0
