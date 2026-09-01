@@ -1,6 +1,6 @@
 // Background Service Worker for Manifest V3
 
-import { fetchAllProblemsFast, fetchUserContestRanking } from '../sync/initial-sync.js';
+import { fetchAllProblemsFast, fetchUserSubmissionHistory, fetchUserContestRanking } from '../sync/initial-sync.js';
 import { sendInitialSyncData, sendIncrementalSubmission } from '../api/backend.js';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -25,66 +25,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function handleFullSync() {
-  chrome.storage.local.set({ syncStatus: 'RUNNING', progressText: 'Starting fast parallel sync...' });
+  chrome.storage.local.set({ syncStatus: 'RUNNING', progressText: 'Fetching problems...' });
   try {
     const problems = await fetchAllProblemsFast(100, (fetched, total) => {
       const progress = `Fetching problems: ${fetched} / ${total}`;
       chrome.storage.local.set({ progressText: progress });
     });
 
-    chrome.storage.local.set({ progressText: 'Syncing user solved questions...' });
+    chrome.storage.local.set({ progressText: 'Fetching user submission history...' });
 
-    // Retrieve user progress summary if available
-    const storageData = await chrome.storage.local.get('userProgressSummary');
-    const summary = storageData.userProgressSummary || [];
+    // Map slug to problem_id
+    const slugMap = new Map();
+    problems.forEach(p => slugMap.set(p.title_slug, p.problem_id));
 
-    let easySolved = 0, medSolved = 0, hardSolved = 0;
-    summary.forEach(item => {
-      if (item.difficulty === 'EASY') easySolved = item.count;
-      if (item.difficulty === 'MEDIUM') medSolved = item.count;
-      if (item.difficulty === 'HARD') hardSolved = item.count;
-    });
-
+    // Fetch user actual submission history from LeetCode
+    const rawSubmissions = await fetchUserSubmissionHistory(0, 100);
     const userSubmissions = [];
-    let eCount = 0, mCount = 0, hCount = 0;
-    
-    // Map user's solved question counts to problem IDs
-    for (const prob of problems) {
-      if (prob.difficulty === 'Easy' && eCount < easySolved) {
-        userSubmissions.push({
-          submission_id: 100000 + prob.problem_id,
-          problem_id: prob.problem_id,
-          submitted_at: new Date().toISOString(),
-          result: 'Accepted',
-          language: 'cpp',
-          runtime_ms: 12,
-          memory_kb: 10200
-        });
-        eCount++;
-      } else if (prob.difficulty === 'Medium' && mCount < medSolved) {
-        userSubmissions.push({
-          submission_id: 100000 + prob.problem_id,
-          problem_id: prob.problem_id,
-          submitted_at: new Date().toISOString(),
-          result: 'Accepted',
-          language: 'python3',
-          runtime_ms: 35,
-          memory_kb: 14500
-        });
-        mCount++;
-      } else if (prob.difficulty === 'Hard' && hCount < hardSolved) {
-        userSubmissions.push({
-          submission_id: 100000 + prob.problem_id,
-          problem_id: prob.problem_id,
-          submitted_at: new Date().toISOString(),
-          result: 'Accepted',
-          language: 'python3',
-          runtime_ms: 80,
-          memory_kb: 18000
-        });
-        hCount++;
-      }
-    }
+
+    rawSubmissions.forEach(sub => {
+      const pid = slugMap.get(sub.title_slug) || 1;
+      userSubmissions.push({
+        submission_id: sub.submission_id,
+        problem_id: pid,
+        submitted_at: sub.submitted_at,
+        result: sub.result,
+        language: sub.language,
+        runtime_ms: sub.runtime_ms,
+        memory_kb: sub.memory_kb
+      });
+    });
 
     const payload = {
       sync_type: 'INITIAL',
@@ -93,13 +62,15 @@ async function handleFullSync() {
       contests: []
     };
 
+    chrome.storage.local.set({ progressText: 'Sending payload to backend...' });
+
     const res = await sendInitialSyncData(payload);
     const now = new Date().toISOString();
     chrome.storage.local.set({ 
       syncStatus: 'SUCCESS', 
       lastSyncTime: now, 
       recordsFetched: res.records_fetched,
-      progressText: `Complete! ${res.records_fetched} records synced.` 
+      progressText: `Complete! ${res.records_fetched} records & ${userSubmissions.length} user submissions synced.` 
     });
     return res;
   } catch (err) {
