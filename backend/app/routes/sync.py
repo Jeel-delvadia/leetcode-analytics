@@ -13,10 +13,15 @@ router = APIRouter(prefix="/sync", tags=["Synchronization"])
 def initial_sync(payload: InitialSyncPayloadSchema, db: Session = Depends(get_db)):
     """
     Ingests full dataset from Chrome extension during initial sync.
+    Saves raw LeetCode GraphQL responses to debug/raw/ directory.
     """
     service = SyncService(db)
     try:
-        record = service.process_initial_sync(payload)
+        record = service.process_initial_sync(
+            payload,
+            raw_problems=payload.raw_problems_response,
+            raw_submissions=payload.raw_submissions_response
+        )
         return {
             "status": "success",
             "sync_id": record.sync_id,

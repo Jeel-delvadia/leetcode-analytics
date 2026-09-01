@@ -1,5 +1,6 @@
+import os
+import json
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from app.database.models import (
     Problem, Topic, ProblemTopic, Submission, UserProblem, 
     Contest, ContestParticipation, SyncHistory, SyncTypeEnum, SyncStatusEnum
@@ -8,6 +9,20 @@ from app.schemas.sync import (
     InitialSyncPayloadSchema, IncrementalSubmissionPayloadSchema, ProblemSyncItemSchema
 )
 from datetime import datetime
+
+DEBUG_RAW_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "debug", "raw")
+
+def save_debug_raw_response(category: str, data: dict):
+    try:
+        cat_dir = os.path.join(DEBUG_RAW_DIR, category)
+        os.makedirs(cat_dir, exist_ok=True)
+        timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%S")
+        filename = os.path.join(cat_dir, f"{timestamp}.json")
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        print(f"[DEBUG LOG] Saved raw LeetCode response to {filename}")
+    except Exception as e:
+        print(f"[DEBUG LOG NOTICE] Could not write raw response file: {e}")
 
 class SyncService:
     def __init__(self, db: Session):
@@ -73,7 +88,13 @@ class SyncService:
             self.recalculate_user_problem(pid)
         self.db.commit()
 
-    def process_initial_sync(self, payload: InitialSyncPayloadSchema) -> SyncHistory:
+    def process_initial_sync(self, payload: InitialSyncPayloadSchema, raw_problems=None, raw_submissions=None) -> SyncHistory:
+        # Save raw responses to debug/raw/ if supplied
+        if raw_problems:
+            save_debug_raw_response("problems", raw_problems)
+        if raw_submissions:
+            save_debug_raw_response("submissions", raw_submissions)
+
         sync_record = SyncHistory(
             sync_type=SyncTypeEnum.INITIAL,
             started_at=datetime.utcnow(),
@@ -169,16 +190,21 @@ class SyncService:
                 total_submissions=data.total_submissions,
                 total_accepted=data.total_accepted,
                 is_paid=data.is_paid,
-                problem_url=data.problem_url or f"https://leetcode.com/problems/{data.title_slug}/"
+                problem_url=data.problem_url or (f"https://leetcode.com/problems/{data.title_slug}/" if data.title_slug else None)
             )
             self.db.add(prob)
         else:
-            prob.acceptance_rate = data.acceptance_rate
-            prob.total_submissions = data.total_submissions
-            prob.total_accepted = data.total_accepted
+            if data.acceptance_rate is not None:
+                prob.acceptance_rate = data.acceptance_rate
+            if data.total_submissions is not None:
+                prob.total_submissions = data.total_submissions
+            if data.total_accepted is not None:
+                prob.total_accepted = data.total_accepted
 
         # Upsert Topics
         for topic_name in data.topics:
+            if not topic_name:
+                continue
             topic = self.db.query(Topic).filter(Topic.name == topic_name).first()
             if not topic:
                 topic = Topic(name=topic_name)

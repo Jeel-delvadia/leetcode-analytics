@@ -1,6 +1,6 @@
-// Background Service Worker for Manifest V3
+// Background Service Worker for Manifest V3 - NO FALLBACK OR FABRICATED VALUES
 
-import { fetchAllProblemsFast, fetchUserSubmissionHistory, fetchUserContestRanking } from '../sync/initial-sync.js';
+import { fetchAllProblemsFast, fetchUserSubmissionHistory } from '../sync/initial-sync.js';
 import { sendInitialSyncData, sendIncrementalSubmission } from '../api/backend.js';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -25,41 +25,49 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function handleFullSync() {
-  chrome.storage.local.set({ syncStatus: 'RUNNING', progressText: 'Fetching problems...' });
+  chrome.storage.local.set({ syncStatus: 'RUNNING', progressText: 'Fetching authentic problems from LeetCode...' });
   try {
-    const problems = await fetchAllProblemsFast(100, (fetched, total) => {
-      const progress = `Fetching problems: ${fetched} / ${total}`;
-      chrome.storage.local.set({ progressText: progress });
+    const { raw_response: rawProblems, problems } = await fetchAllProblemsFast(100, (fetched, total) => {
+      chrome.storage.local.set({ progressText: `Fetching problems: ${fetched} / ${total}` });
     });
 
-    chrome.storage.local.set({ progressText: 'Fetching user submission history...' });
+    chrome.storage.local.set({ progressText: 'Fetching user authentic submission history...' });
 
-    // Map slug to problem_id
+    // Map title_slug to problem_id
     const slugMap = new Map();
-    problems.forEach(p => slugMap.set(p.title_slug, p.problem_id));
+    problems.forEach(p => {
+      if (p.title_slug && p.problem_id) {
+        slugMap.set(p.title_slug, p.problem_id);
+      }
+    });
 
-    // Fetch user actual submission history from LeetCode
-    const rawSubmissions = await fetchUserSubmissionHistory(0, 100);
+    const { raw_response: rawSubmissions, submissions: rawSubs } = await fetchUserSubmissionHistory(0, 100);
     const userSubmissions = [];
 
-    rawSubmissions.forEach(sub => {
-      const pid = slugMap.get(sub.title_slug) || 1;
-      userSubmissions.push({
-        submission_id: sub.submission_id,
-        problem_id: pid,
-        submitted_at: sub.submitted_at,
-        result: sub.result,
-        language: sub.language,
-        runtime_ms: sub.runtime_ms,
-        memory_kb: sub.memory_kb
-      });
+    rawSubs.forEach(sub => {
+      const pid = slugMap.get(sub.title_slug);
+      if (pid) {
+        userSubmissions.push({
+          submission_id: sub.submission_id,
+          problem_id: pid,
+          submitted_at: sub.submitted_at,
+          result: sub.result,
+          language: sub.language,
+          runtime_ms: sub.runtime_ms,
+          memory_kb: sub.memory_kb
+        });
+      } else {
+        console.warn(`[INGEST] Skipping submission ${sub.submission_id}: title_slug '${sub.title_slug}' not found in problem map.`);
+      }
     });
 
     const payload = {
       sync_type: 'INITIAL',
       problems: problems,
       submissions: userSubmissions,
-      contests: []
+      contests: [],
+      raw_problems_response: rawProblems,
+      raw_submissions_response: rawSubmissions
     };
 
     chrome.storage.local.set({ progressText: 'Sending payload to backend...' });
@@ -80,15 +88,19 @@ async function handleFullSync() {
 }
 
 async function handleNewSubmission(submissionData) {
+  if (!submissionData.submission_id || !submissionData.problem_id) {
+    throw new Error("Invalid submission event payload: missing submission_id or problem_id.");
+  }
+
   const response = await sendIncrementalSubmission({
-    submission_id: submissionData.submission_id || Date.now(),
-    problem_id: submissionData.problem_id || 1,
-    title_slug: submissionData.title_slug || 'two-sum',
+    submission_id: submissionData.submission_id,
+    problem_id: submissionData.problem_id,
+    title_slug: submissionData.title_slug || null,
     submitted_at: new Date().toISOString(),
-    result: submissionData.result || 'Accepted',
-    language: submissionData.language || 'cpp',
-    runtime_ms: submissionData.runtime_ms || 0,
-    memory_kb: submissionData.memory_kb || 0
+    result: submissionData.result || null,
+    language: submissionData.language || null,
+    runtime_ms: submissionData.runtime_ms || null,
+    memory_kb: submissionData.memory_kb || null
   });
   return response;
 }

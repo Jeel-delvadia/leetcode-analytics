@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from datetime import datetime
 
 class TopicItemSchema(BaseModel):
@@ -50,6 +50,8 @@ class InitialSyncPayloadSchema(BaseModel):
     problems: List[ProblemSyncItemSchema] = []
     submissions: List[SubmissionSyncItemSchema] = []
     contests: List[ContestParticipationSyncSchema] = []
+    raw_problems_response: Optional[Dict[str, Any]] = None
+    raw_submissions_response: Optional[Dict[str, Any]] = None
 
 class IncrementalSubmissionPayloadSchema(BaseModel):
     submission_id: int
